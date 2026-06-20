@@ -199,6 +199,14 @@ class TelegramChannelSource(SourceAdapter):
             raise RuntimeError(
                 "Telegram session is not authorized. Run `python -m rentsearch.telegram_login`."
             )
+        me = await client.get_me()
+        if getattr(me, "bot", False):
+            await client.disconnect()
+            raise RuntimeError(
+                "Telegram session is a BOT account, which cannot read channel history. "
+                "Delete the session file and re-run `python -m rentsearch.telegram_login`, "
+                "entering your personal phone number (not the bot token)."
+            )
         self._client = client
         return client
 

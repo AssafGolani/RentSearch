@@ -32,9 +32,21 @@ async def _main() -> int:
         settings.telegram_api_id,
         settings.telegram_api_hash,
     )
-    # start() prompts for phone number, login code, and 2FA password if set.
-    await client.start()
+    print("\nLog in with your PERSONAL Telegram account (the one that is a member")
+    print("of the rental channels). Enter your phone number in international format,")
+    print("e.g. +9725XXXXXXXX — do NOT enter the bot token here.\n")
+    # Force the user-login path with an explicit phone prompt, so a bot token
+    # can't accidentally be used (which would create an unusable bot session).
+    await client.start(phone=lambda: input("Phone number: "))
+
     me = await client.get_me()
+    if getattr(me, "bot", False):
+        print("\n❌ This session is a BOT account, which cannot read channel history.")
+        print("   Delete the session file below and run this again, entering your")
+        print(f"   personal phone number instead:\n   {settings.telegram_session_path}.session")
+        await client.disconnect()
+        return 1
+
     name = getattr(me, "username", None) or getattr(me, "first_name", "user")
     print(f"\n✅ Logged in as {name}.")
     print(f"   Session saved to: {settings.telegram_session_path}.session")
