@@ -197,9 +197,37 @@ rentsearch/
   formatting.py      # HTML captions + inline keyboards
   sites.py           # load generic sources from config.yaml
   sources/           # Yad2, Madlan, Facebook, generic adapters + base
+    robots.py        # robots.txt parser + longest-match matcher
+    http.py          # PoliteClient: robots-aware, crawl-delay-respecting fetch
   bot/               # Telegram application, handlers, /newfilter wizard
 main.py              # entrypoint (bot + interval scheduler)
 ```
+
+---
+
+## Respecting robots.txt & site rules
+
+Every outbound request goes through a **robots.txt-aware fetch layer**
+(`sources/http.py` → `PoliteClient`). Before fetching a URL it loads and caches
+the host's `robots.txt`, refuses any path the site disallows for us, and spaces
+out requests per the host's `Crawl-delay`. The matcher (`sources/robots.py`)
+implements Google's spec — wildcards, end-anchors, and *longest-match-wins*
+precedence — because the stdlib parser mishandles rules like `Disallow: /*?*price=`.
+
+The **Yad2 adapter is built around the paths Yad2 explicitly permits**:
+
+- It crawls the rental search page using **only allowed parameters** (`city`,
+  `rooms`, and `shelter=1`), never the disallowed ones (`price`, `squaremeter`,
+  `floor`, `imageOnly`, …). Those criteria — including price, size and **ממ"ד** —
+  are applied **client-side** instead.
+- It uses the explicitly-allowed `Allow: /realestate/rent?shelter=1` page as the
+  fast path for **מקלט** searches, and the published **sitemaps** for discovery.
+- It reads listings from the page's embedded `__NEXT_DATA__`, never the
+  disallowed `/api/` endpoints.
+
+If Yad2 ever tightens a rule, the fetch layer simply returns *no results from
+Yad2* (logged) rather than making a disallowed request. The same protection
+covers Madlan and any generic source you add.
 
 ---
 
@@ -208,5 +236,9 @@ main.py              # entrypoint (bot + interval scheduler)
 - Scrapers depend on third-party site structure, which changes over time. The
   adapters are written defensively (a schema change degrades gracefully rather
   than crashing the run), but a source may occasionally need its parser updated.
-- Use responsibly: respect each site's Terms of Service and `robots.txt`, keep
-  the search interval reasonable, and consider a proxy for higher volumes.
+- Yad2 expects a **numeric city code** for the `city` parameter; the adapter
+  passes your value through and relies on the client-side city match as a
+  backstop, so broad results still get narrowed correctly.
+- Use responsibly: keep the search interval reasonable, respect each site's
+  Terms of Service, and consider an Israeli residential proxy only if you hit
+  rate limits at higher volumes.
