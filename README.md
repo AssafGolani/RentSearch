@@ -71,6 +71,8 @@ touches site-specific HTML/JSON, so **adding a source is self-contained**.
 
 ## Quick start
 
+> **Requires Python 3.9+** (tested on 3.9 and 3.11).
+
 ### 1. Create a Telegram bot
 Talk to [@BotFather](https://t.me/BotFather), run `/newbot`, and copy the token.
 

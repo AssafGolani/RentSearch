@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 from datetime import datetime, timezone
+from typing import Optional
 
 from sqlalchemy import (
     Boolean,
@@ -45,14 +46,14 @@ class SavedFilter(Base):
     neighborhoods: Mapped[str] = mapped_column(String(500), default="")  # comma-separated
     property_type: Mapped[str] = mapped_column(String(60), default="")
 
-    min_price: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    max_price: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    min_rooms: Mapped[float | None] = mapped_column(Float, nullable=True)
-    max_rooms: Mapped[float | None] = mapped_column(Float, nullable=True)
-    min_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    max_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    min_floor: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    max_floor: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    min_price: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    max_price: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    min_rooms: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    max_rooms: Mapped[Optional[float]] = mapped_column(Float, nullable=True)
+    min_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    max_size: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    min_floor: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    max_floor: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     require_mamad: Mapped[bool] = mapped_column(Boolean, default=False)
     require_shelter: Mapped[bool] = mapped_column(Boolean, default=False)
@@ -119,7 +120,7 @@ class SeenProperty(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     chat_id: Mapped[int] = mapped_column(Integer, index=True)
-    filter_id: Mapped[int | None] = mapped_column(ForeignKey("saved_filters.id"), nullable=True)
+    filter_id: Mapped[Optional[int]] = mapped_column(ForeignKey("saved_filters.id"), nullable=True)
 
     global_id: Mapped[str] = mapped_column(String(200), index=True)  # source:source_id
     fingerprint: Mapped[str] = mapped_column(String(64), index=True)  # cross-source dedupe key
@@ -127,7 +128,7 @@ class SeenProperty(Base):
     source: Mapped[str] = mapped_column(String(40))
     url: Mapped[str] = mapped_column(Text)
     title: Mapped[str] = mapped_column(Text, default="")
-    price: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    price: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
 
     first_seen_at: Mapped[datetime] = mapped_column(DateTime, default=_utcnow)
 
