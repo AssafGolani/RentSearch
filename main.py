@@ -44,7 +44,8 @@ def main() -> int:
     application = build_application()
     log.info("RentSearch is running. Press Ctrl+C to stop.")
     # run_polling manages the event loop, scheduler job queue and graceful shutdown.
-    application.run_polling(allowed_updates=None)
+    # drop_pending_updates clears stale updates queued while the bot was offline.
+    application.run_polling(drop_pending_updates=True, allowed_updates=None)
     return 0
 
 

@@ -4,10 +4,13 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 
+from telegram import Update
+from telegram.error import Conflict, NetworkError, TimedOut
 from telegram.ext import (
     Application,
     CallbackQueryHandler,
     CommandHandler,
+    ContextTypes,
 )
 
 from ..config import settings
@@ -16,6 +19,23 @@ from . import handlers
 from .conversation import build_conversation_handler
 
 logger = logging.getLogger(__name__)
+
+
+async def _on_error(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Global error handler: keep the log readable, never crash the bot."""
+    err = context.error
+    if isinstance(err, Conflict):
+        # Another process is polling getUpdates with the same token.
+        logger.error(
+            "Telegram Conflict: another instance of this bot is already running "
+            "with the same token. Stop the other process (only ONE instance may "
+            "poll at a time), or use a separate token."
+        )
+        return
+    if isinstance(err, (NetworkError, TimedOut)):
+        logger.warning("Telegram network issue (will retry): %s", err)
+        return
+    logger.exception("Unhandled error while processing an update: %s", err)
 
 
 def build_application() -> Application:
@@ -37,6 +57,9 @@ def build_application() -> Application:
     application.add_handler(CallbackQueryHandler(handlers.on_run_filter, pattern=r"^runf:"))
     application.add_handler(CallbackQueryHandler(handlers.on_toggle_filter, pattern=r"^togglef:"))
     application.add_handler(CallbackQueryHandler(handlers.on_delete_filter, pattern=r"^delf:"))
+
+    # Graceful error handling (tames the getUpdates Conflict / network spam).
+    application.add_error_handler(_on_error)
 
     # Periodic search job (cron-style interval).
     interval = timedelta(minutes=settings.search_interval_minutes)
