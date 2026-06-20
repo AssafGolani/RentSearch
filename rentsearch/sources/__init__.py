@@ -12,6 +12,7 @@ from .base import Listing, SearchFilter, SourceAdapter
 from .facebook import FacebookSource
 from .generic import GenericSource
 from .madlan import MadlanSource
+from .telegram_channels import TelegramChannelSource
 from .yad2 import Yad2Source
 
 logger = logging.getLogger(__name__)
@@ -39,6 +40,7 @@ def register_builtin_sources() -> None:
     register(Yad2Source())
     register(MadlanSource())
     register(FacebookSource())
+    register(TelegramChannelSource())
 
 
 def register_generic_sources(configs: list[dict]) -> None:

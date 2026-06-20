@@ -10,9 +10,10 @@ Built for renters who are tired of refreshing five different sites all day.
 
 ## What it does
 
-- **Searches multiple sources**: Yad2, Madlan, Facebook (Marketplace/groups),
-  and any Israeli real-estate site that publishes schema.org data (HomeLess,
-  WinWin, Komo, agency sites… add them in `config.yaml`, no code needed).
+- **Searches multiple sources**: public **Telegram rental channels** (the most
+  reliable source — see below), Yad2, Madlan, Facebook (Marketplace/groups), and
+  any Israeli real-estate site that publishes schema.org data (HomeLess, WinWin,
+  Komo, agency sites… add them in `config.yaml`, no code needed).
 - **Runs automatically on an interval** (cron-style). Every active saved filter
   re-runs every `SEARCH_INTERVAL_MINUTES` and only *new* properties are sent.
 - **Saved filters**: create named searches (city, price, rooms, size, floor,
@@ -130,6 +131,34 @@ require ממ"ד? → require מקלט? → which sources. Anything can be skippe
 | `HTTP_PROXY_URL` | _(empty)_ | Optional outbound proxy for scrapers. |
 | `REQUEST_TIMEOUT_SECONDS` | `25` | Per-request HTTP timeout. |
 
+### Enabling Telegram channels (recommended — most reliable source)
+Yad2 and Madlan actively block automated HTTP access (you'll see `403`s and
+empty results — run `python -m rentsearch.diagnose` to confirm). Public Telegram
+rental channels have no such wall and already aggregate Yad2/Facebook listings,
+so they're the most reliable source.
+
+Reading public channels uses the Telegram **client** API (a user account), not
+the Bot API. One-time setup:
+
+1. Get an `api_id` + `api_hash` from [my.telegram.org](https://my.telegram.org)
+   → *API development tools*.
+2. Put them and your channels in `.env`:
+   ```bash
+   TELEGRAM_API_ID=1234567
+   TELEGRAM_API_HASH=abcdef0123456789abcdef0123456789
+   TELEGRAM_CHANNELS=@some_rentals_telaviv,@some_rentals_jerusalem
+   ```
+3. Log in once (enter your phone number + the code Telegram sends):
+   ```bash
+   python -m rentsearch.telegram_login
+   ```
+   This saves a `data/telethon.session` file; the bot then runs
+   non-interactively. The adapter parses each post for price, rooms, size and
+   ממ"ד/מקלט, downloads the photo, and de-duplicates against the other sources.
+
+Use an account you control. The `diagnose` command shows exactly what every
+source returns if results look empty.
+
 ### Enabling Facebook
 Facebook has no public rentals API and requires a logged-in session. To enable it:
 ```bash
@@ -198,9 +227,12 @@ rentsearch/
   notifier.py        # render + send listings to Telegram
   formatting.py      # HTML captions + inline keyboards
   sites.py           # load generic sources from config.yaml
-  sources/           # Yad2, Madlan, Facebook, generic adapters + base
+  diagnose.py        # `python -m rentsearch.diagnose` — probe what sources return
+  telegram_login.py  # one-time Telegram client-API login
+  sources/           # Yad2, Madlan, Facebook, Telegram, generic adapters + base
     robots.py        # robots.txt parser + longest-match matcher
     http.py          # PoliteClient: robots-aware, crawl-delay-respecting fetch
+    telegram_channels.py  # read public rental channels via Telethon
   bot/               # Telegram application, handlers, /newfilter wizard
 main.py              # entrypoint (bot + interval scheduler)
 ```

@@ -39,6 +39,18 @@ class Settings:
     http_proxy_url: str = field(default_factory=lambda: os.getenv("HTTP_PROXY_URL", ""))
     request_timeout_seconds: int = field(default_factory=lambda: _get_int("REQUEST_TIMEOUT_SECONDS", 25))
 
+    # --- Telegram channel source (MTProto / Telethon) ---
+    telegram_api_id: int = field(default_factory=lambda: _get_int("TELEGRAM_API_ID", 0))
+    telegram_api_hash: str = field(default_factory=lambda: os.getenv("TELEGRAM_API_HASH", ""))
+    telegram_channels_raw: str = field(default_factory=lambda: os.getenv("TELEGRAM_CHANNELS", ""))
+    telegram_session_path: str = field(
+        default_factory=lambda: os.getenv("TELEGRAM_SESSION_PATH", "data/telethon")
+    )
+
+    @property
+    def telegram_channels(self) -> list[str]:
+        return [c.strip().lstrip("@") for c in self.telegram_channels_raw.split(",") if c.strip()]
+
     def validate(self) -> list[str]:
         """Return a list of human-readable configuration problems (empty == OK)."""
         problems: list[str] = []

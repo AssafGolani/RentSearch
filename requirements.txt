@@ -16,3 +16,6 @@ pydantic==2.9.2
 
 # Fuzzy matching for de-duplication
 rapidfuzz==3.10.1
+
+# Reading public Telegram rental channels (MTProto client API)
+Telethon==1.36.0

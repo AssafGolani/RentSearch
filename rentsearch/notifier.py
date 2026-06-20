@@ -8,6 +8,8 @@ from __future__ import annotations
 
 import json
 import logging
+import os
+from pathlib import Path
 
 from telegram import Bot
 from telegram.constants import ParseMode
@@ -18,6 +20,18 @@ from .formatting import render_caption, render_keyboard
 from .sources.base import Listing
 
 logger = logging.getLogger(__name__)
+
+
+def _photo_arg(image: str):
+    """Return a value send_photo accepts: a Path for local files, else the URL.
+
+    Telegram-channel listings store a downloaded local file path in ``images``;
+    website listings store a remote URL. PTB reads a ``Path`` as an upload but
+    treats a bare string as a URL/file_id, so we must distinguish them.
+    """
+    if image and os.path.exists(image):
+        return Path(image)
+    return image
 
 # global_id -> JSON snapshot, used by the favorite callback handler.
 _LISTING_CACHE: dict[str, str] = {}
@@ -47,7 +61,7 @@ async def send_listing(bot: Bot, chat_id: int | str, listing: Listing, filter_na
         try:
             await bot.send_photo(
                 chat_id=chat_id,
-                photo=listing.images[0],
+                photo=_photo_arg(listing.images[0]),
                 caption=caption,
                 parse_mode=ParseMode.HTML,
                 reply_markup=keyboard,
