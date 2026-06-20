@@ -1,0 +1,21 @@
+# Optional: register additional Israeli real-estate sites that publish
+# schema.org JSON-LD listing data. Copy to `config.yaml` and edit.
+#
+# Each entry adds a pluggable source — no code required. The {city},
+# {min_price}, {max_price} placeholders are filled in from each search filter.
+#
+# These are illustrative templates; adjust the URL patterns to match the
+# actual search pages of the sites you want to include.
+
+generic_sources:
+  - name: homeless
+    label: HomeLess
+    search_url: "https://www.homeless.co.il/rent/?city={city}"
+
+  - name: winwin
+    label: WinWin
+    search_url: "https://winwin.co.il/RealEstate/Rent?city={city}"
+
+  - name: komo
+    label: Komo
+    search_url: "https://www.komo.co.il/code/nadlan/rent.asp?city={city}"

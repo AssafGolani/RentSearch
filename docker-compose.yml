@@ -1,0 +1,11 @@
+services:
+  rentsearch:
+    build: .
+    container_name: rentsearch
+    restart: unless-stopped
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      # If you add generic sources, create config.yaml and uncomment this line:
+      # - ./config.yaml:/app/config.yaml:ro
